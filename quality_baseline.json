@@ -1,0 +1,38 @@
+{
+  "_meta": {
+    "name": "ReviewFlow 质量基准集（RF-01）",
+    "created": "2026-09-22",
+    "owner": "WB",
+    "purpose": "给分析引擎（关键词版 / LLM 版）一个可回归的评分基准：同一份输入，报告质量是否达标，以此表判定。",
+    "usage": "跑 `python -m app analyze --baseline data/quality/quality_baseline.json`（或人工对照）→ 比对 actual vs expected。",
+    "pass_line": "归类准确率 ≥90% 且 脱敏 100% 且 计数一致；详见 docs/QUALITY_RUBRIC.md"
+  },
+  "cases": [
+    {"id": 1,  "text": "快递晚了两天，物流信息一直不更新。", "expected_category": "物流", "expect_redact": false, "note": "典型时效问题"},
+    {"id": 2,  "text": "快递送错地址了，等了很久才转过来。", "expected_category": "物流", "expect_redact": false, "note": "异常件"},
+    {"id": 3,  "text": "配送挺快的，第二天就到了。", "expected_category": "物流", "expect_redact": false, "note": "正面反馈，仍归物流"},
+    {"id": 4,  "text": "收到的时候纸箱已经破了。", "expected_category": "包装", "expect_redact": false, "note": "外包装破损"},
+    {"id": 5,  "text": "包装里面没有缓冲，边角都磕坏了。", "expected_category": "包装", "expect_redact": false, "note": "缓冲不足"},
+    {"id": 6,  "text": "包装很严实，一点没坏。", "expected_category": "包装", "expect_redact": false, "note": "正面"},
+    {"id": 7,  "text": "第二次使用就坏了，质量需要改进。", "expected_category": "质量", "expect_redact": false, "note": "耐用性"},
+    {"id": 8,  "text": "用了两周出现故障，无法使用。", "expected_category": "质量", "expect_redact": false, "note": "故障"},
+    {"id": 9,  "text": "质量不错，比想象中好。", "expected_category": "质量", "expect_redact": false, "note": "正面"},
+    {"id": 10, "text": "客服回复太慢，等了一天。", "expected_category": "客服", "expect_redact": false, "note": "时效"},
+    {"id": 11, "text": "客服态度不错，问题解决了。", "expected_category": "客服", "expect_redact": false, "note": "正面"},
+    {"id": 12, "text": "售后没解释清楚退换步骤。", "expected_category": "客服", "expect_redact": false, "note": "口径不清"},
+    {"id": 13, "text": "颜色和描述有差异，尺寸也不太合适。", "expected_category": "描述", "expect_redact": false, "note": "描述不符"},
+    {"id": 14, "text": "实际尺寸和描述一致。", "expected_category": "描述", "expect_redact": false, "note": "正面"},
+    {"id": 15, "text": "页面说有赠品，收到没有。", "expected_category": "描述", "expect_redact": false, "note": "承诺未兑现（归描述）"},
+
+    {"id": 16, "text": "暂时没有更多意见。", "expected_category": "其他", "expect_redact": false, "boundary": true, "note": "空泛评价，禁止强行分类"},
+    {"id": 17, "text": "物流慢而且包装也破了，客服还不回。", "expected_category": "物流", "expect_redact": false, "boundary": true, "note": "多标签混合：命中首个规则即归类，须记录未覆盖标签"},
+    {"id": 18, "text": "请联系我 13812345678，订单 202409011234567890。", "expected_category": "其他", "expect_redact": true, "boundary": true, "note": "含手机号+长编号 → 必须脱敏"},
+    {"id": 19, "text": "邮箱 test.buyer@example.com 反馈：包装破损严重。", "expected_category": "包装", "expect_redact": true, "boundary": true, "note": "含邮箱 → 脱敏后仍应正确归类"},
+    {"id": 20, "text": "这款产品我买了三次，第一次物流慢，第二次包装破，第三次质量出问题，但客服每次都处理得很好，所以还是给好评，希望商家把前三个环节都改进一下，另外建议详情页把尺寸标注得更清楚一些。", "expected_category": "物流", "expect_redact": false, "boundary": true, "note": "长文本多标签：不得截断、不得崩溃，须暴露全部命中标签"}
+  ],
+  "aggregation_expectations": {
+    "total": 20,
+    "count_reconciled": true,
+    "note": "clusters 各类 count 之和必须 == 20；任何一条评价丢失或重复计数即判不合格。"
+  }
+}
