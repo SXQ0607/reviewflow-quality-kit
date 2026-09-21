@@ -1,0 +1,24 @@
+{
+  "name": "ReviewFlow 评价诊断",
+  "slug": "reviewflow-review-diagnosis",
+  "version": "0.1.0",
+  "type": "analysis-agent",
+  "tagline": "把买家评价一键变成可执行的改进清单（脱敏 + 归类 + 动作指令 + 回复模板）",
+  "description": "输入一批电商买家评价，输出按类别聚类的诊断报告：每类给出触发证据、给商家的具体动作指令、可直接发给买家的回复模板。支持两档引擎：本地关键词（零成本、离线）与本地 LLM（qwen2.5:7b，需 Ollama）。全部在用户本地运行，评价数据本地脱敏，不外传。",
+  "input_schema": {
+    "reviews": {"type": "array<string>", "description": "买家评价文本，1~200 条"},
+    "engine": {"type": "enum[keyword,llm,auto]", "default": "keyword", "description": "keyword=离线关键词；llm=本地大模型；auto=先llm失败回落keyword"}
+  },
+  "output_schema": {
+    "clusters": [
+      {"category": "string", "count": "int", "evidence_ids": "int[]", "suggestion": "string(动作指令)", "reply": "string(回复模板)"}
+    ],
+    "quality": {"count_reconciled": "bool", "human_review_required": "bool"}
+  },
+  "privacy": {
+    "local_first": true,
+    "redaction": "手机号 / 邮箱 / 12 位以上编号 自动脱敏",
+    "telemetry": "opt-in；仅上报类别分布与失败模式统计，绝不收集原始评价内容"
+  },
+  "open_source": "质量基准集与稳健抽取模块已开源（仓库 reviewflow-quality-kit）"
+}
